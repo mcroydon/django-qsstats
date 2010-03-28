@@ -16,11 +16,17 @@ class QuerySetStats(object):
 
     def for_day(self, dt, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
-        return self.get_aggregate(dt, dt, date_field, aggregate)
+        kwargs = {
+            '%s__year' % date_field : dt.year,
+            '%s__month' % date_field : dt.month,
+            '%s__day' % date_field : dt.day,
+        }
+        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
+        return agg['agg']
 
     def this_day(self, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
-        return self.for_day(self.today, self.today, date_field, aggregate)
+        return self.for_day(self.today, date_field, aggregate)
 
     def for_month(self, dt, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
@@ -50,6 +56,7 @@ class QuerySetStats(object):
         kwargs = {'%s__range' % date_field : (first_day, last_day)}
         agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
         return agg['agg']
+
         
 
 if __name__ == '__main__':
@@ -64,4 +71,3 @@ if __name__ == '__main__':
     qss = QuerySetStats(qs, 'date_joined')
     print "%s new accounts this month." % qss.this_month()
     print "%s new accounts this year." % qss.this_year()
-
