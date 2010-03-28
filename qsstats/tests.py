@@ -21,6 +21,8 @@ class QuerySetStatsTestCase(TestCase):
 
     # MC_TODO: Test time series
 
+    # MC_TODO: aggregate_field tests
+
     def test_query_set_missing(self):
         qss = QuerySetStats(date_field='foo')
         for method in ['this_day', 'this_month', 'this_year']:
