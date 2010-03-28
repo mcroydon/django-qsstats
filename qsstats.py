@@ -14,6 +14,14 @@ class QuerySetStats(object):
 
     # MC_TODO: investigate dynamic dispatch?
 
+    def for_day(self, dt, date_field=None, aggregate=Count):
+        date_field = date_field or self.date_field
+        return self.get_aggregate(dt, dt, date_field, aggregate)
+
+    def this_day(self, date_field=None, aggregate=Count):
+        date_field = date_field or self.date_field
+        return self.for_day(self.today, self.today, date_field, aggregate)
+
     def for_month(self, dt, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
 
@@ -40,7 +48,7 @@ class QuerySetStats(object):
 
     def get_aggregate(self, first_day, last_day, date_field, aggregate):
         kwargs = {'%s__range' % date_field : (first_day, last_day)}
-        agg = qs.filter(**kwargs).aggregate(agg=aggregate('id'))
+        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
         return agg['agg']
         
 
