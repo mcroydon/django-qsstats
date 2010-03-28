@@ -18,18 +18,18 @@ class QuerySetStats(object):
     is able to handle snapshots of data (for example this day, week, month, or
     year) or generate time series data suitable for graphing.
     """
-    def __init__(self, qs=None, date_field=None, aggregate=None):
+    def __init__(self, qs=None, date_field=None, aggregate_field=None, aggregate_class=None):
         self.qs = qs
         self.date_field = date_field
-        self.aggregate = aggregate or getattr(settings, 'QUERYSETSTATUS_DEFAULT_AGGREGATE', Count)
+        self.aggregate_class = aggregate_class or getattr(settings, 'QUERYSETSTATUS_DEFAULT_AGGREGATE_CLASS', Count)
         # MC_TODO: Danger in caching this?
         self.update_today()
 
     # Aggregates for a specific period of time
 
-    def for_day(self, dt, date_field=None, aggregate=None):
+    def for_day(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
         self.check_date_field(date_field)
         self.check_qs()
 
@@ -38,55 +38,55 @@ class QuerySetStats(object):
             '%s__month' % date_field : dt.month,
             '%s__day' % date_field : dt.day,
         }
-        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
+        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate_class('id'))
         return agg['agg']
 
-    def this_day(self, date_field=None, aggregate=None):
+    def this_day(self, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
 
-        return self.for_day(self.today, date_field, aggregate)
+        return self.for_day(self.today, date_field, aggregate_class)
 
-    def for_month(self, dt, date_field=None, aggregate=None):
+    def for_month(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
         self.check_date_field(date_field)
         self.check_qs()
 
         first_day = datetime.date(year=dt.year, month=dt.month, day=1)
         last_day = first_day + relativedelta(day=31)
-        return self.get_aggregate(first_day, last_day, date_field, aggregate)
+        return self.get_aggregate(first_day, last_day, date_field, aggregate_class)
 
-    def this_month(self, date_field=None, aggregate=None):
+    def this_month(self, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
 
-        return self.for_month(self.today, date_field, aggregate)
+        return self.for_month(self.today, date_field, aggregate_class)
 
-    def for_year(self, dt, date_field=None, aggregate=None):
+    def for_year(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
         self.check_date_field(date_field)
         self.check_qs()
 
         first_day = datetime.date(year=dt.year, month=1, day=1)
         last_day = datetime.date(year=dt.year, month=12, day=31)
-        return self.get_aggregate(first_day, last_day, date_field, aggregate)
+        return self.get_aggregate(first_day, last_day, date_field, aggregate_class)
 
-    def this_year(self, date_field=None, aggregate=None):
+    def this_year(self, date_field=None, aggregate_field=None, aggregate_class=None):
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
 
-        return self.for_year(self.today, date_field, aggregate)
+        return self.for_year(self.today, date_field, aggregate_class)
 
     # Aggregate over time intervals
 
-    def time_series(self, start_date, end_date, interval='days', date_field=None, aggregate=None):
+    def time_series(self, start_date, end_date, interval='days', date_field=None, aggregate_field=None, aggregate_class=None):
         if interval not in ('years', 'months', 'weeks', 'days'):
             raise InvalidInterval('Inverval not supported.')
 
         date_field = date_field or self.date_field
-        aggregate = aggregate or self.aggregate
+        aggregate_class = aggregate_class or self.aggregate_class
 
         self.check_date_field(date_field)
         self.check_qs()
@@ -96,7 +96,7 @@ class QuerySetStats(object):
         while dt < end_date:
             # MC_TODO: Less hacky way of doing this?
             method = getattr(self, 'for_%s' % interval.rstrip('s'))
-            stat_list.append((dt, method(dt, date_field=date_field, aggregate=aggregate)))
+            stat_list.append((dt, method(dt, date_field=date_field, aggregate_class=aggregate_class)))
             dt = dt + relativedelta(**{interval : 1})
         return stat_list
 
@@ -104,11 +104,11 @@ class QuerySetStats(object):
     def update_today(self):
         self.today = datetime.date.today()
 
-    def get_aggregate(self, first_day, last_day, date_field, aggregate):
+    def get_aggregate(self, first_day, last_day, date_field, aggregate_class):
         # MC_TODO: Allow aggregate field to be passed down
         #          instead of hard-coding id.
         kwargs = {'%s__range' % date_field : (first_day, last_day)}
-        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
+        agg = self.qs.filter(**kwargs).aggregate(agg=aggregate_class('id'))
         return agg['agg']
 
     def check_date_field(self, date_field):
