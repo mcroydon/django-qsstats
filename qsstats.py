@@ -62,8 +62,8 @@ class QuerySetStats(object):
 if __name__ == '__main__':
     """
     This generates:
-    15 new accounts this month
-    104 new accounts this year
+    x new accounts this month.
+    y new accounts this year.
     """
     # User example
     from django.contrib.auth.models import User
