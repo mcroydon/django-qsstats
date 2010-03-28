@@ -3,6 +3,9 @@ from django.conf import settings
 from django.db.models import Count
 import datetime
 
+class InvalidInterval(Exception):
+    pass
+
 class QuerySetStats(object):
     """
     Generates statistics for a queryset.
@@ -16,8 +19,10 @@ class QuerySetStats(object):
 
     # Aggregates for a specific period of time
 
-    def for_day(self, dt, date_field=None, aggregate=self.aggregate):
+    def for_day(self, dt, date_field=None, aggregate=None):
         date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
+
         kwargs = {
             '%s__year' % date_field : dt.year,
             '%s__month' % date_field : dt.month,
@@ -26,34 +31,57 @@ class QuerySetStats(object):
         agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
         return agg['agg']
 
-    def this_day(self, date_field=None, aggregate=self.aggregate):
+    def this_day(self, date_field=None, aggregate=None):
         date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
+
         return self.for_day(self.today, date_field, aggregate)
 
-    def for_month(self, dt, date_field=None, aggregate=self.aggregate):
+    def for_month(self, dt, date_field=None, aggregate=None):
         date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
 
         first_day = datetime.date(year=dt.year, month=dt.month, day=1)
         last_day = first_day + relativedelta(day=31)
         return self.get_aggregate(first_day, last_day, date_field, aggregate)
 
-    def this_month(self, date_field=None, aggregate=self.aggregate):
+    def this_month(self, date_field=None, aggregate=None):
+        date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
+
         return self.for_month(self.today, date_field, aggregate)
 
-    def for_year(self, dt, date_field=None, aggregate=self.aggregate):
+    def for_year(self, dt, date_field=None, aggregate=None):
         date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
  
         first_day = datetime.date(year=dt.year, month=1, day=1)
         last_day = datetime.date(year=dt.year, month=12, day=31)
         return self.get_aggregate(first_day, last_day, date_field, aggregate)
 
-    def this_year(self, date_field=None, aggregate=self.aggregate):
+    def this_year(self, date_field=None, aggregate=None):
+        date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
+
         return self.for_year(self.today, date_field, aggregate)
 
     # Aggregate over time intervals
 
-    def time_series(self, start_time, end_time, interval='days', date_field=None, aggregate=self.aggregate):
-        pass
+    def time_series(self, start_date, end_date, interval='days', date_field=None, aggregate=None):
+        if interval not in ('years', 'months', 'weeks', 'days'):
+            raise InvalidInterval('Inverval not supported.')
+
+        date_field = date_field or self.date_field
+        aggregate = aggregate or self.aggregate
+
+        stat_list = []
+        dt = start_date
+        while dt < end_date:
+            # MC_TODO: Less hacky way of doing this?
+            method = getattr(self, 'for_%s' % interval.rstrip('s'))
+            stat_list.append((dt, method(dt, date_field=date_field, aggregate=aggregate)))
+            dt = dt + relativedelta(**{interval : 1})
+        return stat_list
 
     # Utility functions
     def update_today(self):
@@ -63,8 +91,6 @@ class QuerySetStats(object):
         kwargs = {'%s__range' % date_field : (first_day, last_day)}
         agg = self.qs.filter(**kwargs).aggregate(agg=aggregate('id'))
         return agg['agg']
-
-        
 
 if __name__ == '__main__':
     """
@@ -78,3 +104,6 @@ if __name__ == '__main__':
     qss = QuerySetStats(qs, 'date_joined')
     print "%s new accounts this month." % qss.this_month()
     print "%s new accounts this year." % qss.this_year()
+    today = datetime.date.today()
+    earlier = today - relativedelta(days=10)
+    print "Stats for the last few days: %s" % qss.time_series(earlier, today)
