@@ -45,10 +45,6 @@ class QuerySetStats(object):
         return agg['agg']
 
     def this_day(self, date_field=None, aggregate_field=None, aggregate_class=None):
-        date_field = date_field or self.date_field
-        aggregate_class = aggregate_class or self.aggregate_class
-        aggregate_field = aggregate_field or self.aggregate_field
-
         return self.for_day(self.today, date_field, aggregate_field, aggregate_class)
 
     def for_month(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
@@ -64,9 +60,6 @@ class QuerySetStats(object):
         return self.get_aggregate(first_day, last_day, date_field, aggregate_field, aggregate_class)
 
     def this_month(self, date_field=None, aggregate_field=None, aggregate_class=None):
-        date_field = date_field or self.date_field
-        aggregate_class = aggregate_class or self.aggregate_class
-
         return self.for_month(self.today, date_field, aggregate_class)
 
     def for_year(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
@@ -82,10 +75,6 @@ class QuerySetStats(object):
         return self.get_aggregate(first_day, last_day, date_field, aggregate_field, aggregate_class)
 
     def this_year(self, date_field=None, aggregate_field=None, aggregate_class=None):
-        date_field = date_field or self.date_field
-        aggregate_class = aggregate_class or self.aggregate_class
-        aggregate_field = aggregate_field or self.aggregate_field
-
         return self.for_year(self.today, date_field, aggregate_field, aggregate_class)
 
     # Aggregate over time intervals
