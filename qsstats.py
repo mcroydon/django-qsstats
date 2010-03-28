@@ -8,7 +8,9 @@ class InvalidInterval(Exception):
 
 class QuerySetStats(object):
     """
-    Generates statistics for a queryset.
+    Generates statistics about a queryset using Django aggregates.  QuerySetStats
+    is able to handle snapshots of data (for example this day, week, month, or
+    year) or generate time series data suitable for graphing.
     """
     def __init__(self, qs, date_field=None, aggregate=None):
         self.qs = qs
