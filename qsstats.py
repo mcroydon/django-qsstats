@@ -12,27 +12,36 @@ class QuerySetStats(object):
         # MC_TODO: Danger in caching this?
         self.update_today()
 
-    def this_month(self, date_field=None):
+    # MC_TODO: investigate dynamic dispatch?
+
+    def for_month(self, dt, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
 
-        first_day = datetime.date(year=self.today.year, month=self.today.month, day=1)
+        first_day = datetime.date(year=dt.year, month=dt.month, day=1)
         last_day = first_day + relativedelta(day=31)
-        return self.get_count(first_day, last_day, date_field)
+        return self.get_aggregate(first_day, last_day, date_field, aggregate)
 
-    def this_year(self, date_field=None):
+    def this_month(self, date_field=None, aggregate=Count):
+        return self.for_month(self.today, date_field, aggregate)
+
+    def for_year(self, dt, date_field=None, aggregate=Count):
         date_field = date_field or self.date_field
-        first_day = datetime.date(year=self.today.year, month=1, day=1)
-        last_day = datetime.date(year=self.today.year, month=12, day=31)
-        return self.get_count(first_day, last_day, date_field)
+ 
+        first_day = datetime.date(year=dt.year, month=1, day=1)
+        last_day = datetime.date(year=dt.year, month=12, day=31)
+        return self.get_aggregate(first_day, last_day, date_field, aggregate)
+
+    def this_year(self, date_field=None, aggregate=Count):
+        return self.for_year(self.today, date_field, aggregate)
 
     # Utility functions
     def update_today(self):
         self.today = datetime.date.today()
 
-    def get_count(self, first_day, last_day, date_field):
+    def get_aggregate(self, first_day, last_day, date_field, aggregate):
         kwargs = {'%s__range' % date_field : (first_day, last_day)}
-        agg = qs.filter(**kwargs).aggregate(count=Count('id'))
-        return agg['count']
+        agg = qs.filter(**kwargs).aggregate(agg=aggregate('id'))
+        return agg['agg']
         
 
 if __name__ == '__main__':
