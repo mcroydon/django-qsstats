@@ -116,18 +116,3 @@ class QuerySetStats(object):
         if not self.qs:
             raise QuerySetMissing("Please provide a queryset.")
 
-if __name__ == '__main__':
-    """
-    This generates:
-    x new accounts this month.
-    y new accounts this year.
-    """
-    # User example
-    from django.contrib.auth.models import User
-    qs = User.objects.all()
-    qss = QuerySetStats(qs, 'date_joined')
-    print "%s new accounts this month." % qss.this_month()
-    print "%s new accounts this year." % qss.this_year()
-    today = datetime.date.today()
-    earlier = today - relativedelta(days=10)
-    print "Stats for the last few days: %s" % qss.time_series(earlier, today)
