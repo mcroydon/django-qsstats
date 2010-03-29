@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from qsstats import QuerySetStats, InvalidInterval, DateFieldMissing, QuerySetMissing
+import datetime
 
 class QuerySetStatsTestCase(TestCase):
     def test_basic_today(self):
@@ -18,8 +19,17 @@ class QuerySetStatsTestCase(TestCase):
         # We should only see a single user
         self.assertEqual(qss.this_day(), 1)
 
-
-    # MC_TODO: Test time series
+    def test_time_series(self):
+        today = datetime.date.today()
+        seven_days_ago = today - datetime.timedelta(days=7)
+        for j in range(1,8):
+            for i in range(0,j):
+                u = User.objects.create_user('p-%s-%s' % (j, i), 'p%s-%s@example.com' % (j, i))
+                u.date_joined = today - datetime.timedelta(days=i)
+                u.save()
+        qs = User.objects.all()
+        qss = QuerySetStats(qs, 'date_joined')
+        self.assertEqual(qss.time_series(seven_days_ago, today), [])
 
     # MC_TODO: aggregate_field tests
 
