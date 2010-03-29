@@ -6,6 +6,12 @@ The goal of django-qsstats is to be a microframework to make
 repetitive tasks such as generating aggregate statistics of querysets
 over time easier.
 
+Requirements
+============
+
+* `python-dateutil <http://labix.org/python-dateutil>`_
+* `django <http://www.djangoproject.com/>`_ 1.1+
+
 Examples
 ========
 
@@ -51,8 +57,71 @@ This might print something like::
 
     New users in the last 7 days: [3, 10, 7, 4, 12, 9, 11]
 
-Requirements
-============
+API
+===
 
-* `python-dateutil <http://labix.org/python-dateutil>`_
-* `django <http://www.djangoproject.com/>`_ 1.1+
+The ``QuerySetStats`` object
+----------------------------
+
+In order to provide maximum flexibility, the ``QuerySetStats`` object
+can be instantiated with as little or as much information as you like.
+All keword arguments are optional but ``DateFieldMissing`` and
+``QuerySetMissing`` will be raised if you try to use ``QuerySetStats``
+without providing enough information.
+
+``qs``
+    The queryset to operate on.
+    
+    Default: ``None``
+
+``date_field``
+    The date field within the queryset to use.
+
+    Default: ``None``
+
+``aggregate_field``
+    The field to use for aggregate data.  Can be set system-wide with
+    the setting ``QUERYSETSTATS_DEFAULT_AGGREGATE_FIELD`` or set when
+    instantiating or calling one of the methods.
+    
+    Default: ``'id'``
+
+``aggregate_class``
+    The aggregate class to be called during aggregation operations.  Can
+    be set system-wide with the setting ``QUERYSETSTATS_DEFAULT_AGGREGATE_CLASS``
+    or set when instantiating or calling one of the methods.
+
+    Default: ``Count``
+
+All of the documented methods take a standard set of keyword arguments that override any information already stored within the ``QuerySetStats`` object.  These keyword arguments are ``date_field``, ``aggregate_field``, ``aggregate_class``.
+
+Once you have a ``QuerySetStats`` object instantiated, you can receive a single aggregate result by using the following methods:
+
+``for_day``
+    Positional arguments: ``dt``, a ``datetime.datetime`` or ``datetime.date`` object
+    to filter the queryset to this day.
+
+``this_day``
+    A wrapper around ``for_day`` that provides aggregate information for ``datetime.date.today()``.  It takes no positional arguments.
+
+``for_month``
+    Positional arguments: ``dt``, a ``datetime.datetime`` or ``datetime.date`` object to filter the queryset to this month.
+
+``this_month``
+    A wrapper around ``for_month`` that uses ``dateutil.relativedelta`` to provide aggregate information for this current month.
+
+``for_year``
+    Positional arguments: ``dt``, a ``datetime.datetime`` or ``datetime.date`` object to filter the queryset to this year.
+
+``this_year``
+    A wrapper around ``for_year`` that uses ``dateutil.relativedelta`` to provide aggregate information for this current year.
+
+``QuerySetStats`` also provides a method for returning aggregated
+time-series data which may be extremely using in plotting data:
+
+``time_series``
+    Positional arguments: ``start_date`` and ``end_date``, each a ``datetime.date`` or ``datetime.datetime`` object used in marking the start and stop of the time series data.
+
+    Keyword arguments: In addition to the standard ``date_field``, ``aggregate_field``, and ``aggregate_class`` keyword argument, ``time_series`` takes an optional ``interval`` keyword argument used to mark which interval to use while calculating aggregate data between ``start_date`` and ``end_date``.  This argument defaults to ``'days'`` and can accept ``'years'``, ``'months'``, ``'weeks'``, or ``'days'``.  It will raise ``InvalidInterval`` otherwise.
+
+    This methods returns a list of tuples.  The first item in each tuple is a ``datetime.date`` object for the current inverval.  The second item is the result of the aggregate operation.
