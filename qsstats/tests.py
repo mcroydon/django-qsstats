@@ -29,7 +29,8 @@ class QuerySetStatsTestCase(TestCase):
                 u.save()
         qs = User.objects.all()
         qss = QuerySetStats(qs, 'date_joined')
-        self.assertEqual(qss.time_series(seven_days_ago, today), [])
+        time_series = qss.time_series(seven_days_ago, today)
+        self.assertEqual([t[1] for t in time_series], [0, 1, 2, 3, 4, 5, 6])
 
     # MC_TODO: aggregate_field tests
 
