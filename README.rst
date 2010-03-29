@@ -122,6 +122,21 @@ time-series data which may be extremely using in plotting data:
 ``time_series``
     Positional arguments: ``start_date`` and ``end_date``, each a ``datetime.date`` or ``datetime.datetime`` object used in marking the start and stop of the time series data.
 
-    Keyword arguments: In addition to the standard ``date_field``, ``aggregate_field``, and ``aggregate_class`` keyword argument, ``time_series`` takes an optional ``interval`` keyword argument used to mark which interval to use while calculating aggregate data between ``start_date`` and ``end_date``.  This argument defaults to ``'days'`` and can accept ``'years'``, ``'months'``, ``'weeks'``, or ``'days'``.  It will raise ``InvalidInterval`` otherwise.
+    Keyword arguments: In addition to the standard ``date_field``,
+    ``aggregate_field``, and ``aggregate_class`` keyword argument,
+    ``time_series`` takes an optional ``interval`` keyword argument
+    used to mark which interval to use while calculating aggregate
+    data between ``start_date`` and ``end_date``.  This argument
+    defaults to ``'days'`` and can accept ``'years'``, ``'months'``,
+    ``'weeks'``, or ``'days'``.  It will raise ``InvalidInterval``
+    otherwise.
 
-    This methods returns a list of tuples.  The first item in each tuple is a ``datetime.date`` object for the current inverval.  The second item is the result of the aggregate operation.
+    This methods returns a list of tuples.  The first item in each
+    tuple is a ``datetime.date`` object for the current inverval.  The
+    second item is the result of the aggregate operation.  For
+    example::
+
+        [(datetime.date(2010, 3, 28), 12), (datetime.date(2010, 3, 29), 0), ...]
+
+    Formatting of date information is left as an exercise to the user and may
+    vary depending on interval used.
