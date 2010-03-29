@@ -1,3 +1,6 @@
+__author__ = 'Matt Croydon'
+__version__ = (0, 2, 0)
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models import Count
