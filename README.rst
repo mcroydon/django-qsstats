@@ -12,6 +12,11 @@ Requirements
 * `python-dateutil <http://labix.org/python-dateutil>`_
 * `django <http://www.djangoproject.com/>`_ 1.1+
 
+License
+=======
+
+Liensed under a BSD-style license.
+
 Examples
 ========
 
@@ -142,6 +147,12 @@ time-series data which may be extremely using in plotting data:
 
     Formatting of date information is left as an exercise to the user and may
     vary depending on interval used.
+
+Testing
+=======
+
+If you'd like to test ``django-qsstats`` against your local configuration, add
+``qsstats`` to your ``INSTALLED_APPS`` and run ``./manage.py test qsstats``.  The test suite assumes that ``django.contrib.auth`` is installed.
 
 TODO
 ====
