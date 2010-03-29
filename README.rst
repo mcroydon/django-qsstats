@@ -57,6 +57,8 @@ This might print something like::
 
     New users in the last 7 days: [3, 10, 7, 4, 12, 9, 11]
 
+Please see qsstats/tests.py for similar usage examples.
+
 API
 ===
 
@@ -140,3 +142,10 @@ time-series data which may be extremely using in plotting data:
 
     Formatting of date information is left as an exercise to the user and may
     vary depending on interval used.
+
+TODO
+====
+
+* There's a bunch of boilerplate that I'm sure could be reduced.
+* Clearer documentation and usage examples.
+* More test coverage.
