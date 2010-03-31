@@ -35,12 +35,14 @@ How many users signed up today? this month? this year?
     print '%s new accounts today.' % qss.this_day()
     print '%s new accounts this month.' % qss.this_month()
     print '%s new accounts this year.' % qss.this_year()
+    print '%s new accounts until now.' % qss.until_now()
 
 This might print something like::
 
     5 new accounts today.
     27 new accounts this month.
     377 new accounts this year.
+    409 new accounts until now.
 
 Aggregating time-series data suitable for graphing
 --------------------------------------------------
@@ -101,6 +103,14 @@ without providing enough information.
 
     Default: ``Count``
 
+``operator``
+    The default operator to use for the ``pivot`` function.  Can be set
+    system-wide with the setting ``QUERYSETSTATS_DEFAULT_OPERATOR`` or
+    set when calling ``pivot``.
+    
+    Default: ``'lte'``
+
+
 All of the documented methods take a standard set of keyword arguments that override any information already stored within the ``QuerySetStats`` object.  These keyword arguments are ``date_field``, ``aggregate_field``, ``aggregate_class``.
 
 Once you have a ``QuerySetStats`` object instantiated, you can receive a single aggregate result by using the following methods:
@@ -148,6 +158,52 @@ time-series data which may be extremely using in plotting data:
 
     Formatting of date information is left as an exercise to the user and may
     vary depending on interval used.
+
+``until``
+    Provide aggregate information until a given date or time, filtering the
+    queryset using ``lte``.
+    
+    Positional arguments: ``dt`` a ``datetime.date`` or ``datetime.datetime``
+    object to be used for filtering the queryset since.
+
+    Keyword arguments: ``date_field``, ``aggregate_field``, ``aggregate_class``.
+
+``until_now``
+    Aggregate information until now.
+
+    Positional arguments: ``dt`` a ``datetime.date`` or ``datetime.datetime``
+    object to be used for filtering the queryset since (using ``lte``).
+
+    Keyword arguments: ``date_field``, ``aggregate_field``, ``aggregate_class``.
+
+``after``
+    Aggregate information after a given date or time, filtering the queryset
+    using ``gte``.
+    
+    Positional arguments: ``dt`` a ``datetime.date`` or ``datetime.datetime``
+    object to be used for filtering the queryset since.
+    
+    Keyword arguments: ``date_field``, ``aggregate_field``, ``aggregate_class``.
+
+``after_now``
+    Aggregate information after now.
+
+    Positional arguments: ``dt`` a ``datetime.date`` or ``datetime.datetime``
+    object to be used for filtering the queryset since (using ``gte``).
+
+    Keyword arguments: ``date_field``, ``aggregate_field``, ``aggregate_class``.
+
+``pivot``
+    Used by ``since``, ``after``, and ``until_now`` but potentially useful if
+    you would like to specify your own operator instead of the defaults.
+
+    Positional arguments: ``dt`` a ``datetime.date`` or ``datetime.datetime``
+    object to be used for filtering the queryset since (using ``lte``).
+
+    Keyword arguments: ``operator``, ``date_field``, ``aggregate_field``, ``aggregate_class``.
+    
+    Raises ``InvalidOperator`` if the operator provided is not one of ``'lt'``,
+    ``'lte'``, ``gt`` or ``gte``.
 
 Testing
 =======

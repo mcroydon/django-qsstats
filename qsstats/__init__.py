@@ -1,5 +1,5 @@
 __author__ = 'Matt Croydon'
-__version__ = (0, 2, 0)
+__version__ = (0, 3, 0)
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -7,6 +7,9 @@ from django.db.models import Count
 import datetime
 
 class InvalidInterval(Exception):
+    pass
+
+class InvalidOperator(Exception):
     pass
 
 class DateFieldMissing(Exception):
@@ -21,11 +24,13 @@ class QuerySetStats(object):
     is able to handle snapshots of data (for example this day, week, month, or
     year) or generate time series data suitable for graphing.
     """
-    def __init__(self, qs=None, date_field=None, aggregate_field=None, aggregate_class=None):
+    def __init__(self, qs=None, date_field=None, aggregate_field=None, aggregate_class=None, operator=None):
         self.qs = qs
         self.date_field = date_field
         self.aggregate_field = aggregate_field or getattr(settings, 'QUERYSETSTATS_DEFAULT_AGGREGATE_FIELD', 'id')
         self.aggregate_class = aggregate_class or getattr(settings, 'QUERYSETSTATS_DEFAULT_AGGREGATE_CLASS', Count)
+        self.operator = operator or getattr(settings, 'QUERYSETSTATS_DEFAULT_OPERATOR', 'lte')
+
         # MC_TODO: Danger in caching this?
         self.update_today()
 
@@ -101,6 +106,36 @@ class QuerySetStats(object):
             stat_list.append((dt, method(dt, date_field=date_field, aggregate_field=aggregate_field, aggregate_class=aggregate_class)))
             dt = dt + relativedelta(**{interval : 1})
         return stat_list
+
+    # Aggregate totals using a date or datetime as a pivot
+
+    def until(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
+        return self.pivot(dt, 'lte', date_field, aggregate_field, aggregate_class)
+
+    def until_now(self, date_field=None, aggregate_field=None, aggregate_class=None):
+        return self.pivot(datetime.datetime.now(), 'lte', date_field, aggregate_field, aggregate_class)
+
+    def after(self, dt, date_field=None, aggregate_field=None, aggregate_class=None):
+        return self.pivot(dt, 'gte', date_field, aggregate_field, aggregate_class)
+
+    def after_now(self, date_field=None, aggregate_field=None, aggregate_class=None):
+        return self.pivot(datetime.datetime.now(), 'gte', date_field, aggregate_field, aggregate_class)
+
+    def pivot(self, dt, operator=None, date_field=None, aggregate_field=None, aggregate_class=None):
+        date_field = date_field or self.date_field
+        aggregate_class = aggregate_class or self.aggregate_class
+        aggregate_field = aggregate_field or self.aggregate_field
+        operator = operator or self.operator
+        
+        self.check_date_field(date_field)
+        self.check_qs()
+        if operator not in ['lt', 'lte', 'gt', 'gte']:
+            raise InvalidOperator("Please provide a valid operator.")
+
+        kwargs = {'%s__%s' % (date_field, operator) : dt}
+
+        total = self.qs.filter(**kwargs).aggregate(total=aggregate_class(aggregate_field))
+        return total['total']
 
     # Utility functions
     def update_today(self):
