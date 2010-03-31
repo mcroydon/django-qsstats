@@ -30,7 +30,7 @@ How many users signed up today? this month? this year?
     import qsstats
     
     qs = User.objects.all()
-    qss = qsstats.QuerySetStats(qs, 'date-joined')
+    qss = qsstats.QuerySetStats(qs, 'date_joined')
     
     print '%s new accounts today.' % qss.this_day()
     print '%s new accounts this month.' % qss.this_month()
@@ -53,7 +53,7 @@ Aggregating time-series data suitable for graphing
     import datetime, qsstats
 
     qs = User.objects.all()
-    qss = qsstats.QuerySetStats(qs, 'date-joined')
+    qss = qsstats.QuerySetStats(qs, 'date_joined')
     
     today = datetime.date.today()
     seven_days_ago = today - datetime.timedelta(days=7)
