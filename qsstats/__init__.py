@@ -1,5 +1,5 @@
 __author__ = 'Matt Croydon'
-__version__ = (0, 3, 0)
+__version__ = (0, 3, 1)
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
